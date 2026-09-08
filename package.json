@@ -1,0 +1,38 @@
+{
+  "name": "build-your-own-library-management-system",
+  "version": "1.0.0",
+  "description": "![Design preview for the Build Your Own Library Management System](https://pub-63da695b9ece47c5b3b49bd78b86d884.r2.dev/Build%20Your%20Own%20Library%20Management%20System.png)",
+  "keywords": [],
+  "homepage": "https://github.com/backendcommunity/build-your-own-library-management-system#readme",
+  "bugs": {
+    "url": "https://github.com/backendcommunity/build-your-own-library-management-system/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/backendcommunity/build-your-own-library-management-system.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^17.4.2",
+    "dotevn": "^0.0.1-security",
+    "express": "^5.2.1",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.0",
+    "@types/pg": "^8.23.1",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.10.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}
