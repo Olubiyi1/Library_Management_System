@@ -5,4 +5,5 @@ export interface CreateBookDto {
   };
   genre: string;
   description: string;
+  totalCopies:number
 }

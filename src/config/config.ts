@@ -7,5 +7,6 @@ export default{
   email_user:process.env.EMAIL_USER as string,
   email_password:process.env.EMAIL_PASSWORD as string,
   access_token_secret_key:process.env.ACCESS_TOKEN_SECRET_KEY as string,
+  admin_Email:process.env.ADMIN_EMAIL as string,
   refresh_token_secret_key:process.env.REFRESH_TOKEN_SECRET_KEY as string,
 }

@@ -31,6 +31,12 @@ enum Department{
   PLUMBING
 }
 
+enum BorrowingStatus{
+  BORROWED
+  RETURN_PENDING
+  RETURNED
+}
+
 model User {
   id String @id @default(uuid())
   firstName String 
@@ -99,7 +105,8 @@ model Book {
   authorId     String
   genre        String
   description  String
-  availability Boolean  @default(true)
+  totalCopies  Int
+  availableCopies Int
 
   author       Author   @relation(fields: [authorId], references: [id])
 
@@ -114,5 +121,6 @@ model Borrowing{
   userId String
   bookId String
   borrowedAt DateTime @default(now())
+  status BorrowingStatus @default(BORROWED)
   returnedAt DateTime?
 }

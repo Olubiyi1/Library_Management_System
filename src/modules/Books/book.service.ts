@@ -18,6 +18,7 @@ class BookService{
         return exisitingBook
     }
 
+    // get all books
     async getAllBooks(){
         const allBooks = await prisma.book.findMany({
             include:{
@@ -26,6 +27,8 @@ class BookService{
         })
         return allBooks;
     }
+
+    // create books
     async createBooks(data:CreateBookDto){
 
         // find if author exists to avoid duplication
@@ -50,7 +53,8 @@ class BookService{
                 authorId:author.id,
                 description:data.description,
                 genre:data.genre,
-                availability:true
+                totalCopies:data.totalCopies,
+                availableCopies:data.totalCopies
             }
         })
         return book;

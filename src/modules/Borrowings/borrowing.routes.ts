@@ -1,5 +1,8 @@
 import { Router } from "express";
+import borrowingController from "./borrowing.controller.js";
 
-const borrowingRoute = Router()
+const borrowingRoute = Router();
 
-borrowingRoute.post("/",borrowingc)
+borrowingRoute.post("/", borrowingController.borrowBook);
+borrowingRoute.post("/return", borrowingController.returnBook);
+borrowingRoute.patch("/return/approve/:borrowingId",borrowingController.approveBookReturn);
