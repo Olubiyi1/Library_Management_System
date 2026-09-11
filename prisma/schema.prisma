@@ -37,10 +37,82 @@ model User {
   lastName String
   email String @unique
   password String
+  phoneNumber String
   accountType AccountType @default(STUDENT)
   section Section?
   department Department?
   verifiedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // relationships
+  verificationToken VerificationToken[]
+  refreshToken RefreshToken[]
+  passwordResetToken PasswordResetToken[]
+
+}
+
+model VerificationToken{
+  id String @id @default(uuid())
+  token String @unique
+  userId String 
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+} 
+
+model PasswordResetToken{
+  id String @id @default(uuid())
+  token String @unique
+  userId String 
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  @@index([userId])
+
+}
+
+model RefreshToken{
+  id String @id @default(uuid())
+  hashedToken String
+  userId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  @@index([userId])
+}
+
+model Author {
+  id        String   @id @default(uuid())
+  name      String
+  books     Book[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Book {
+  id           String   @id @default(uuid())
+  title        String
+  authorId     String
+  genre        String
+  description  String
+  availability Boolean  @default(true)
+
+  author       Author   @relation(fields: [authorId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+
+model Borrowing{
+  id String @id @default(uuid())
+  userId String
+  bookId String
+  borrowedAt DateTime @default(now())
+  returnedAt DateTime?
 }
