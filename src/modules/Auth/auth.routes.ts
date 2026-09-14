@@ -8,3 +8,5 @@ authRoute.get("/verify-email",AuthController.verifyUser)
 authRoute.post("/login",AuthController.loginUser)
 authRoute.post("/forgot-password",AuthController.forgotPassword)
 authRoute.patch("/password/reset",AuthController.resetPassword)
+
+export default authRoute;

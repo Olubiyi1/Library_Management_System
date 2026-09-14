@@ -16,7 +16,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx src/server.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
@@ -26,6 +27,7 @@
     "dotenv": "^17.4.2",
     "dotevn": "^0.0.1-security",
     "express": "^5.2.1",
+    "ioredis": "^6.0.0",
     "joi": "^18.2.8",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^10.0.1",

@@ -4,11 +4,10 @@ import type { Request, Response } from "express";
 import { asyncHandler } from "../../errorHandlers/asyncHandler.js";
 
 class BorrowingController {
-
-    
   borrowBook = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.params.userId as string;
-    const bookId = req.params.bookId as string;
+    // const userId = req.params.userId as string;
+    // const bookId = req.params.bookId as string;
+    const { userId, bookId } = req.body;
 
     const borrowedBook = await BorrowingService.borrowBook({ userId, bookId });
 
@@ -20,7 +19,8 @@ class BorrowingController {
   });
 
   returnBook = asyncHandler(async (req: Request, res: Response) => {
-    const borrowingId = req.params.borrowingId as string;
+    // const borrowingId = req.params.borrowingId as string;
+    const { borrowingId } = req.body;
 
     const returnRequest = await BorrowingService.returnBook(borrowingId);
 
@@ -30,7 +30,6 @@ class BorrowingController {
       returnRequest,
     );
   });
-
 
   approveBookReturn = asyncHandler(async (req: Request, res: Response) => {
     const borrowingId = req.params.borrowingId as string;
@@ -44,6 +43,17 @@ class BorrowingController {
       approvedReturn,
     );
   });
+
+  renewBook = asyncHandler(async (req: Request, res: Response) => {
+    const { borrowingId } = req.body;
+
+    const renewedBook = await BorrowingService.renewBook(borrowingId);
+    return ResponseHandler.success(
+      res,
+      "Book renewed successfully",
+      renewedBook,
+    );
+  });
 }
 
-export default new BorrowingController;
+export default new BorrowingController();

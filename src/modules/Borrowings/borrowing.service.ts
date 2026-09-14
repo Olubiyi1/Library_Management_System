@@ -6,6 +6,7 @@ import prisma from "../../config/prisma.js";
 import { createLabel } from "../../utils/lables.js";
 import { bookReturnQueue } from "../../queues/bookReturnQueue.js";
 import { bookReturnApprovalQueue } from "../../queues/bookReturnApproval.js";
+import config from "../../config/config.js";
 
 const borrowingServiceLog = createLabel("BORROWING_SERVICE");
 
@@ -19,6 +20,11 @@ class BorrowingService {
 
     // 3. Start transaction
     const borrowedBook = await prisma.$transaction(async (tx) => {
+      const borrowedAt = new Date();
+
+      const dueDate = new Date(borrowedAt);
+
+      dueDate.setDate(dueDate.getDate() + config.borrowing_duration_days);
       // Check availability and reduce available copies
       const result = await tx.book.updateMany({
         where: {
@@ -44,6 +50,8 @@ class BorrowingService {
         data: {
           userId: data.userId,
           bookId: data.bookId,
+          borrowedAt,
+          dueDate,
         },
       });
 
@@ -106,7 +114,96 @@ class BorrowingService {
 
     return pendingReturn;
   }
-async approveBookReturn(borrowingId: string) {
+  async approveBookReturn(borrowingId: string) {
+    const borrowing = await prisma.borrowing.findUnique({
+      where: {
+        id: borrowingId,
+      },
+    });
+
+    if (!borrowing) {
+      borrowingServiceLog.warn("Borrowing record not found");
+      throw new AppError("Borrowing record not found", 404);
+    }
+
+    if (borrowing.status !== "RETURN_PENDING") {
+      throw new AppError("This return request is not pending approval", 400);
+    }
+
+    // Find the user before the transaction
+    const user = await userService.findUserById(borrowing.userId);
+
+    if (!user) {
+      borrowingServiceLog.warn("User not found");
+      throw new AppError("User not found", 404);
+    }
+
+    // Update borrowing and book together
+    const approveReturn = await prisma.$transaction(async (tx) => {
+      const updatedBorrowing = await tx.borrowing.update({
+        where: {
+          id: borrowingId,
+        },
+        data: {
+          status: "RETURNED",
+          returnedAt: new Date(),
+        },
+      });
+
+      await tx.book.update({
+        where: {
+          id: borrowing.bookId,
+        },
+        data: {
+          availableCopies: {
+            increment: 1,
+          },
+        },
+      });
+
+      return updatedBorrowing;
+    });
+
+    // Notify user after successful transaction
+    try {
+      await bookReturnApprovalQueue.add(
+        "return-approved",
+        {
+          email: user.email,
+          firstName: user.firstName,
+          borrowingId: borrowing.id,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 5000,
+          },
+        },
+      );
+
+      borrowingServiceLog.info("Return approval notification queued");
+    } catch (error: any) {
+      borrowingServiceLog.error(
+        "Failed to queue return approval notification",
+        error,
+      );
+
+      throw new AppError(
+        "Return approved, but notification could not be queued",
+        500,
+      );
+    }
+
+    borrowingServiceLog.info("Return approved");
+
+    return approveReturn;
+  }
+
+ 
+
+async renewBook(borrowingId: string) {
+   const RENEWAL_EXTENSION_DAYS = 3;
   const borrowing = await prisma.borrowing.findUnique({
     where: {
       id: borrowingId,
@@ -118,74 +215,37 @@ async approveBookReturn(borrowingId: string) {
     throw new AppError("Borrowing record not found", 404);
   }
 
-  if (borrowing.status !== "RETURN_PENDING") {
-    throw new AppError("This return request is not pending approval",400);
+  if (borrowing.status !== "BORROWED") {
+    borrowingServiceLog.warn(
+      `Book cannot be renewed. Current status: ${borrowing.status}`
+    );
+
+    throw new AppError(
+      "Only borrowed books can be renewed",
+      400,
+    );
   }
 
-  // Find the user before the transaction
-  const user = await userService.findUserById(borrowing.userId);
+  const newDueDate = new Date(borrowing.dueDate);
 
-  if (!user) {
-    borrowingServiceLog.warn("User not found");
-    throw new AppError("User not found", 404);
-  }
+  newDueDate.setDate(
+    newDueDate.getDate() + RENEWAL_EXTENSION_DAYS
+  );
 
-  // Update borrowing and book together
-  const approveReturn = await prisma.$transaction(async (tx) => {
-    const updatedBorrowing = await tx.borrowing.update({
-      where: {
-        id: borrowingId,
-      },
-      data: {
-        status: "RETURNED",
-        returnedAt: new Date(),
-      },
-    });
-
-    await tx.book.update({
-      where: {
-        id: borrowing.bookId,
-      },
-      data: {
-        availableCopies: {
-          increment: 1,
-        },
-      },
-    });
-
-    return updatedBorrowing;
+  const renewedBorrowing = await prisma.borrowing.update({
+    where: {
+      id: borrowingId,
+    },
+    data: {
+      dueDate: newDueDate,
+    },
   });
 
-  // Notify user after successful transaction
-  try {
-    await bookReturnApprovalQueue.add(
-      "return-approved",
-      {
-        email: user.email,
-        firstName: user.firstName,
-        borrowingId: borrowing.id,
-      },
-      {
-        attempts: 3,
-        backoff: {
-          type: "exponential",
-          delay: 5000,
-        },
-      },
-    );
+  borrowingServiceLog.info(
+    `Book borrowing ${borrowingId} renewed successfully. New due date: ${newDueDate.toISOString()}`
+  );
 
-    borrowingServiceLog.info(
-      "Return approval notification queued",
-    );
-  } catch (error: any) {
-    borrowingServiceLog.error("Failed to queue return approval notification",error);
-
-    throw new AppError("Return approved, but notification could not be queued",500);
-  }
-
-  borrowingServiceLog.info("Return approved");
-
-  return approveReturn;
+  return renewedBorrowing;
 }
 }
 

@@ -9,7 +9,7 @@ import type { LoginDto } from "./dto/userLoginDto.js";
 import Guards from "../../guards/guards.js";
 import { sendMail } from "../../helpers/sendMail.js";
 import type { ResetPasswordDto } from "./dto/resetPasswordDto.js";
-import authController from "./auth.controller.js";
+
 
 const AuthServiceLog = createLabel("AUTH_SERVICE");
 class AuthService {

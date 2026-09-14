@@ -3,6 +3,7 @@ import type { User } from "../../generated/prisma/client.js";
 import prisma from "../../config/prisma.js";
 import Guards from "../../guards/guards.js";
 import { createLabel } from "../../utils/lables.js";
+import AppError from "../../errorHandlers/appError.js";
 
 const UserServiceLogs = createLabel("USER_SERVICE")
 type SafeUser = Omit<User, "password">
@@ -41,8 +42,29 @@ class UserService {
         return user
     }
     async deleteUser(id:string){
-        await prisma.user.delete({where:{id}})
-        return;
+
+        const user = await prisma.user.findFirst({
+            where:{
+                id,
+                isActive:true
+            }
+        })
+        
+        if(!user){
+            UserServiceLogs.warn("User not found")
+            throw new AppError("user not found",404)
+        }
+        
+        const deactivatedUser = await prisma.user.update({
+            where:{
+                id:user.id
+            },
+            data:{
+                isActive:false
+            }
+        })
+        UserServiceLogs.info(`user with ${user.id}, email:${user.email} is successfully deleted`)
+        return deactivatedUser;
     }
 }
 

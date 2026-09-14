@@ -1,4 +1,4 @@
-import { Response } from "express";
+import type{ Response } from "express";
 
 class ResponseHandler {
   static success(res: Response, message: string = "Success", data: unknown = null) {

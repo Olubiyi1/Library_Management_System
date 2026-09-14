@@ -10,8 +10,12 @@ class BooksController{
         const book = await bookService.findBook(id)
         return ResponseHandler.success(res,"book found",book)
     })
-    findAllBooks = asyncHandler(async(_,res:Response)=>{
-       const books =  await bookService.getAllBooks()
+    findAllBooks = asyncHandler(async(req:Request,res:Response)=>{
+
+        // if no page or limit supplied, default to pg 1 and 10 limit
+        const page = Number(req.query.page) || 1
+        const limit  = Number(req.query.limit) || 10
+       const books =  await bookService.getAllBooks(page,limit)
         return ResponseHandler.success(res,"all books found",books)
     })
     addBook = asyncHandler(async(req:Request,res:Response)=>{
