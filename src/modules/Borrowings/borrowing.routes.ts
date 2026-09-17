@@ -7,5 +7,6 @@ borrowingRoute.post("/", borrowingController.borrowBook);
 borrowingRoute.post("/return", borrowingController.returnBook);
 borrowingRoute.patch("/return/approve/:borrowingId",borrowingController.approveBookReturn);
 borrowingRoute.patch("/renew",borrowingController.renewBook)
+borrowingRoute.get("/history",borrowingController.retrieveHistory)
 
 export default borrowingRoute;

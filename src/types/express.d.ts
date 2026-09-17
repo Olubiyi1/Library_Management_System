@@ -6,6 +6,5 @@ export interface AuthRequest extends Request{
         id:String,
         email:String,
         accountType: AccountType
-        verifiedAt? : Date
     }
 }

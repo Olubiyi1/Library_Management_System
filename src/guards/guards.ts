@@ -14,15 +14,8 @@ export interface AccessTokenPayload {
   id: string;
   email: string;
   accountType: AccountType;
-  iat: number;
-  exp: number;
 }
 
-interface RefreshTokenPayload {
-  sub: string;
-  iat: number;
-  exp: number;
-}
 
 interface RefreshTokenResult{
     refreshToken : string
@@ -35,12 +28,16 @@ class Guards {
   static hashPassword = (password: string) => {
     return bcrypt.hashSync(password, 10);
   };
+
+  // compare password
   static comparePassword = async (
     password: string,
     hashPassword: string,
   ): Promise<Boolean> => {
     return await bcrypt.compare(password, hashPassword);
   };
+
+  // create token
   static createAccessToken = (user: TokenPayload): string => {
     const token = jwt.sign(
       {
@@ -56,11 +53,8 @@ class Guards {
     return token;
   };
 
-  static verifyAccessToken = (token: string): AccessTokenPayload => {
-    return jwt.verify(
-      token,
-      config.access_token_secret_key,
-    ) as AccessTokenPayload;
+  static verifyAccessToken = (token: string)=> {
+    return jwt.verify(token,config.access_token_secret_key,);
   };
 
   static createRefreshToken = (user: TokenPayload): RefreshTokenResult => {
@@ -80,8 +74,8 @@ class Guards {
     }
   };
 
-  static verifyRefreshToken = (token:string):RefreshTokenPayload=>{
-    return jwt.verify(token,config.refresh_token_secret_key) as RefreshTokenPayload
+  static verifyRefreshToken = (token:string)=>{
+    return jwt.verify(token,config.refresh_token_secret_key)
   }
 }
 

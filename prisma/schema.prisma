@@ -37,6 +37,13 @@ enum BorrowingStatus{
   RETURNED
 }
 
+enum ReservationStatus {
+  PENDING
+  FULFILLED
+  CANCELLED
+  EXPIRED
+}
+
 model User {
   id String @id @default(uuid())
   firstName String 
@@ -51,6 +58,7 @@ model User {
   verifiedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  reservations Reservation[]
 
   // relationships
   verificationToken VerificationToken[]
@@ -111,6 +119,7 @@ model Book {
   totalCopies  Int
   availableCopies Int
   borrowings Borrowing[]
+  reservations Reservation[]
   isActive Boolean @default(true)
   author       Author   @relation(fields: [authorId], references: [id])
 
@@ -131,4 +140,16 @@ model Borrowing{
 
   user User @relation(fields: [userId],references: [id],onDelete: Cascade)
   book  Book @relation(fields: [bookId],references: [id],onDelete: Restrict)
+}
+
+model Reservation {
+  id                String            @id @default(uuid())
+  userId            String
+  bookId            String
+  reservedAt        DateTime          @default(now())
+  dueDate           DateTime
+  reservationStatus ReservationStatus @default(PENDING)
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book              Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }

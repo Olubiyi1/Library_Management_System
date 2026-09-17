@@ -54,6 +54,14 @@ class BorrowingController {
       renewedBook,
     );
   });
+
+  retrieveHistory = asyncHandler(async(req:Request,res:Response)=>{
+    const {userId} = req.body
+
+    const history = await BorrowingService.borrowingHistory(userId)
+
+    return ResponseHandler.success(res,"Borrowing history retreievd",history)
+  })
 }
 
 export default new BorrowingController();

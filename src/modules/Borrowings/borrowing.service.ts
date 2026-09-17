@@ -114,6 +114,7 @@ class BorrowingService {
 
     return pendingReturn;
   }
+
   async approveBookReturn(borrowingId: string) {
     const borrowing = await prisma.borrowing.findUnique({
       where: {
@@ -200,53 +201,61 @@ class BorrowingService {
     return approveReturn;
   }
 
- 
+  async renewBook(borrowingId: string) {
+    const RENEWAL_EXTENSION_DAYS = 3;
+    const borrowing = await prisma.borrowing.findUnique({
+      where: {
+        id: borrowingId,
+      },
+    });
 
-async renewBook(borrowingId: string) {
-   const RENEWAL_EXTENSION_DAYS = 3;
-  const borrowing = await prisma.borrowing.findUnique({
-    where: {
-      id: borrowingId,
-    },
-  });
+    if (!borrowing) {
+      borrowingServiceLog.warn("Borrowing record not found");
+      throw new AppError("Borrowing record not found", 404);
+    }
 
-  if (!borrowing) {
-    borrowingServiceLog.warn("Borrowing record not found");
-    throw new AppError("Borrowing record not found", 404);
-  }
+    if (borrowing.status !== "BORROWED") {
+      borrowingServiceLog.warn(
+        `Book cannot be renewed. Current status: ${borrowing.status}`,
+      );
 
-  if (borrowing.status !== "BORROWED") {
-    borrowingServiceLog.warn(
-      `Book cannot be renewed. Current status: ${borrowing.status}`
+      throw new AppError("Only borrowed books can be renewed", 400);
+    }
+
+    const newDueDate = new Date(borrowing.dueDate);
+
+    newDueDate.setDate(newDueDate.getDate() + RENEWAL_EXTENSION_DAYS);
+
+    const renewedBorrowing = await prisma.borrowing.update({
+      where: {
+        id: borrowingId,
+      },
+      data: {
+        dueDate: newDueDate,
+      },
+    });
+
+    borrowingServiceLog.info(
+      `Book borrowing ${borrowingId} renewed successfully. New due date: ${newDueDate.toISOString()}`,
     );
 
-    throw new AppError(
-      "Only borrowed books can be renewed",
-      400,
-    );
+    return renewedBorrowing;
   }
 
-  const newDueDate = new Date(borrowing.dueDate);
+  async borrowingHistory(userId: string) {
+    await userService.findUserById(userId);
 
-  newDueDate.setDate(
-    newDueDate.getDate() + RENEWAL_EXTENSION_DAYS
-  );
+    const history = await prisma.borrowing.findMany({
+      where: {
+        userId: userId,
+      },include:{
+        book:true
+      }
+    });
 
-  const renewedBorrowing = await prisma.borrowing.update({
-    where: {
-      id: borrowingId,
-    },
-    data: {
-      dueDate: newDueDate,
-    },
-  });
-
-  borrowingServiceLog.info(
-    `Book borrowing ${borrowingId} renewed successfully. New due date: ${newDueDate.toISOString()}`
-  );
-
-  return renewedBorrowing;
-}
+    borrowingServiceLog.info("Borrowing records retrieved")
+    return history;
+  }
 }
 
 export default new BorrowingService();
