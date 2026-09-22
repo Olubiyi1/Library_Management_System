@@ -44,6 +44,30 @@ enum ReservationStatus {
   EXPIRED
 }
 
+enum FineReason {
+  LATE_RETURN
+  LOST_BOOK
+  DAMAGED_BOOK
+}
+
+enum FineStatus {
+  UNPAID
+  PAID
+  WAIVED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentProvider {
+  PAYSTACK
+  FLUTTERWAVE
+  STRIPE
+}
+
 model User {
   id String @id @default(uuid())
   firstName String 
@@ -65,6 +89,7 @@ model User {
   refreshToken RefreshToken[]
   passwordResetToken PasswordResetToken[]
   borrowings Borrowing[]
+  fines Fine[]
 
 }
 
@@ -138,8 +163,10 @@ model Borrowing{
   status BorrowingStatus @default(BORROWED)
   returnedAt DateTime?
 
+
   user User @relation(fields: [userId],references: [id],onDelete: Cascade)
   book  Book @relation(fields: [bookId],references: [id],onDelete: Restrict)
+  fine Fine?
 }
 
 model Reservation {
@@ -152,4 +179,39 @@ model Reservation {
 
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   book              Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model Fine {
+  id          String    @id @default(uuid())
+  borrowingId String @unique
+  userId      String
+  amount      Decimal
+  reason      FineReason
+  status      FineStatus @default(UNPAID)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  borrowing   Borrowing @relation(fields: [borrowingId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  payments    Payment[]
+}
+
+
+model Payment {
+  id        String @id @default(uuid())
+  fineId    String
+
+  amount    Decimal
+  reference String @unique
+  status    PaymentStatus @default(PENDING)
+
+  provider  PaymentProvider
+  paidAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fine      Fine @relation(fields: [fineId], references: [id])
 }

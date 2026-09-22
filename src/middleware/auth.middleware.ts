@@ -12,6 +12,7 @@ const authLog = createLabel("AUTH")
 export const authMiddleware = async(req:AuthRequest,res:Response,next:NextFunction):Promise<void>=>{
 
     try{
+        
         // get access token from the cookie sent from controller
         const token = req.cookies?.accessToken
 

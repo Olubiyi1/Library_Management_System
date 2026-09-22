@@ -5,7 +5,8 @@ import ResponseHandler from "../../utils/ResponseHandler.js";
 
 class ReservationController {
   bookReserve = asyncHandler(async (req: Request, res: Response) => {
-    const { userId, bookId } = req.body;
+    const bookId = req.params.bookId as string;
+    const userId = req.user.id;
 
     const result = await ReservationService.reserveBook(userId, bookId);
 
@@ -17,7 +18,8 @@ class ReservationController {
   });
 
   bookReservationCancel = asyncHandler(async (req: Request, res: Response) => {
-    const { bookId, userId } = req.body;
+    const bookId = req.params.bookId as string;
+    const userId = req.user.id;
 
     const result = await ReservationService.cancelReservation(bookId, userId);
     return ResponseHandler.success(
@@ -28,4 +30,4 @@ class ReservationController {
   });
 }
 
-export default new ReservationController;
+export default new ReservationController();

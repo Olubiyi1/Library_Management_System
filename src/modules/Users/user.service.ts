@@ -20,7 +20,7 @@ class UserService {
       },
     });
     return allUsers;
-  }
+  } 
 
   async createUser(data: CreateUserDto): Promise<SafeUser> {
     const existingUser = await prisma.user.findUnique({

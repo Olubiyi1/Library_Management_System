@@ -1,10 +1,14 @@
-import {Request} from "express"
-import { AccountType } from "../generated/prisma/enums.ts"
+import { AccountType } from "../generated/prisma/enums.ts";
 
-export interface AuthRequest extends Request{
-    user?:{
-        id:String,
-        email:String,
-        accountType: AccountType
+declare global {
+    namespace Express {
+        interface Request {
+            user: {
+                id: string;
+                email: string;
+                accountType: AccountType;
+            };
+        }
     }
 }
+export {};

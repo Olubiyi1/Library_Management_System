@@ -1,16 +1,18 @@
 import { Router } from "express";
 import bookController from "./book.controller.js";
+import { authMiddleware } from "../../middleware/auth.middleware.js";
+import { restrictTo } from "../../middleware/restrictTo.js";
+import { AccountType } from "../../generated/prisma/enums.js";
 
 const booksRoute = Router()
 booksRoute
     .route("/")
     .get(bookController.findAllBooks)
-    .post(bookController.addBook)
+    .post(authMiddleware,restrictTo(AccountType.ADMIN),bookController.addBook)
     
-booksRoute.route("/:id")
+booksRoute.route("/:bookId")
     .get(bookController.findBook)
-    .patch(bookController.updateBook)
-    .delete(bookController.deleteBook)
-
+    .patch(authMiddleware,restrictTo(AccountType.ADMIN),bookController.updateBook)
+    .delete(authMiddleware,restrictTo(AccountType.ADMIN),bookController.deleteBook)
 
 export default booksRoute;

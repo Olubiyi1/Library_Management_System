@@ -5,9 +5,8 @@ import { asyncHandler } from "../../errorHandlers/asyncHandler.js";
 
 class BorrowingController {
   borrowBook = asyncHandler(async (req: Request, res: Response) => {
-    // const userId = req.params.userId as string;
-    // const bookId = req.params.bookId as string;
-    const { userId, bookId } = req.body;
+    const userId = req.user.id
+    const bookId = req.params.bookId as string;
 
     const borrowedBook = await BorrowingService.borrowBook({ userId, bookId });
 
@@ -19,8 +18,7 @@ class BorrowingController {
   });
 
   returnBook = asyncHandler(async (req: Request, res: Response) => {
-    // const borrowingId = req.params.borrowingId as string;
-    const { borrowingId } = req.body;
+    const borrowingId = req.params.borrowingId as string;
 
     const returnRequest = await BorrowingService.returnBook(borrowingId);
 
@@ -34,8 +32,7 @@ class BorrowingController {
   approveBookReturn = asyncHandler(async (req: Request, res: Response) => {
     const borrowingId = req.params.borrowingId as string;
 
-    const approvedReturn =
-      await BorrowingService.approveBookReturn(borrowingId);
+    const approvedReturn = await BorrowingService.approveBookReturn(borrowingId);
 
     return ResponseHandler.success(
       res,
@@ -45,7 +42,7 @@ class BorrowingController {
   });
 
   renewBook = asyncHandler(async (req: Request, res: Response) => {
-    const { borrowingId } = req.body;
+    const borrowingId = req.params.borrowingId as string
 
     const renewedBook = await BorrowingService.renewBook(borrowingId);
     return ResponseHandler.success(
@@ -56,7 +53,7 @@ class BorrowingController {
   });
 
   retrieveHistory = asyncHandler(async(req:Request,res:Response)=>{
-    const {userId} = req.body
+    const userId = req.user.id
 
     const history = await BorrowingService.borrowingHistory(userId)
 
