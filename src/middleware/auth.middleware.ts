@@ -1,4 +1,4 @@
-import type{ AuthRequest } from "../types/express.js";
+
 import jwt from "jsonwebtoken"
 import AppError from "../errorHandlers/appError.js";
 import Guards, { type AccessTokenPayload } from "../guards/guards.js";
@@ -9,7 +9,7 @@ import userService from "../modules/Users/user.service.js";
 
 const authLog = createLabel("AUTH")
 
-export const authMiddleware = async(req:AuthRequest,res:Response,next:NextFunction):Promise<void>=>{
+export const authMiddleware = async(req:Request,res:Response,next:NextFunction):Promise<void>=>{
 
     try{
         
@@ -24,7 +24,7 @@ export const authMiddleware = async(req:AuthRequest,res:Response,next:NextFuncti
         // verify access token
         let decoded:AccessTokenPayload
         try{
-        decoded = Guards.verifyAccessToken(token) as AccessTokenPayload
+        decoded = Guards.verifyAccessToken(token)
         }
         catch(err){
             if(err instanceof jwt.TokenExpiredError){

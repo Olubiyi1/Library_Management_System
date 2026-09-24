@@ -16,12 +16,10 @@ export interface AccessTokenPayload {
   accountType: AccountType;
 }
 
-
-interface RefreshTokenResult{
-    refreshToken : string
-    hashedRefreshToken : string
+interface RefreshTokenResult {
+  refreshToken: string;
+  hashedRefreshToken: string;
 }
-
 
 class Guards {
   //hash password
@@ -33,7 +31,7 @@ class Guards {
   static comparePassword = async (
     password: string,
     hashPassword: string,
-  ): Promise<Boolean> => {
+  ): Promise<boolean> => {
     return await bcrypt.compare(password, hashPassword);
   };
 
@@ -53,8 +51,8 @@ class Guards {
     return token;
   };
 
-  static verifyAccessToken = (token: string)=> {
-    return jwt.verify(token,config.access_token_secret_key,);
+  static verifyAccessToken = (token: string): AccessTokenPayload => {
+    return jwt.verify(token, config.access_token_secret_key) as AccessTokenPayload;
   };
 
   static createRefreshToken = (user: TokenPayload): RefreshTokenResult => {
@@ -66,17 +64,17 @@ class Guards {
       { expiresIn: "7d" },
     );
 
-    const hashedRefreshToken = createHash("sha256").update(refreshToken).digest("hex")
+    const hashedRefreshToken = createHash("sha256").update(refreshToken).digest("hex");
 
-    return{
-        refreshToken,
-        hashedRefreshToken
-    }
+    return {
+      refreshToken,
+      hashedRefreshToken,
+    };
   };
 
-  static verifyRefreshToken = (token:string)=>{
-    return jwt.verify(token,config.refresh_token_secret_key)
-  }
+  static verifyRefreshToken = (token: string) => {
+    return jwt.verify(token, config.refresh_token_secret_key);
+  };
 }
 
 export default Guards;

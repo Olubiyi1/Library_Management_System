@@ -7,7 +7,7 @@ import { AccountType } from "../../generated/prisma/enums.js";
 const borrowingRoute = Router();
 
 borrowingRoute.post("/:bookId",authMiddleware, borrowingController.borrowBook);
-borrowingRoute.post("/return",authMiddleware, borrowingController.returnBook);
+borrowingRoute.post("/return/:borrowingId",authMiddleware, borrowingController.returnBook);
 borrowingRoute.patch("/return/approve/:borrowingId",authMiddleware,restrictTo(AccountType.ADMIN),borrowingController.approveBookReturn);
 borrowingRoute.patch("/renew",authMiddleware,borrowingController.renewBook)
 borrowingRoute.get("/history",authMiddleware,borrowingController.retrieveHistory)

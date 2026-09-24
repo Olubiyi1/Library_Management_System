@@ -9,6 +9,7 @@ export default{
   access_token_secret_key:process.env.ACCESS_TOKEN_SECRET_KEY as string,
   admin_Email:process.env.ADMIN_EMAIL as string,
   refresh_token_secret_key:process.env.REFRESH_TOKEN_SECRET_KEY as string,
-  borrowing_duration_days:Number(process.env.BORROWING_DURATION_DAYS)
+  borrowing_duration_days:Number(process.env.BORROWING_DURATION_DAYS),
+  paystack_secret_key:process.env.PAYSTACK_SECRET_KEY as string
 
 }

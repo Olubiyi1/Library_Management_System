@@ -26,6 +26,9 @@ class AuthService {
     // generate verification token
     const verificationToken = generateToken();
 
+    console.log(verificationToken);
+    
+
     // save token to db
     const hashedVerificationToken = hashToken(verificationToken);
 

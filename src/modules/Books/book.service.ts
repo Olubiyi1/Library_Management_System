@@ -53,20 +53,33 @@ class BookService {
 
   // create books
   async createBooks(data: CreateBookDto) {
-    // find if author exists to avoid duplication
+
+     // find if author exists to avoid duplication
     let author = await prisma.author.findFirst({
       where: {
         name: data.author.name,
       },
     });
-
-    // if not create the author so as to use the author id
+    
+     // if not create the author so as to use the author id
     if (!author) {
       author = await prisma.author.create({
         data: {
           name: data.author.name,
         },
       });
+    }
+    // find existing book
+
+    const exisitngBook =await prisma.book.findFirst({
+      where:{
+        title:data.title,
+        authorId:author.id
+      }
+    })
+
+    if(exisitngBook){
+      throw new AppError("Book already exists", 409);
     }
 
     const book = await prisma.book.create({
