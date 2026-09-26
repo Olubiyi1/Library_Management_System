@@ -5,36 +5,38 @@ import paystackService from "./Paystack/paystack.service.js";
 
 class Payment {
   async makePayment(userId: string, fineId: string) {
+    // Find user
     const user = await userService.findUserById(userId);
-
-    if (!user?.email) {
-      throw new AppError("User email is required for payment", 400);
+    if (!user) {
+      throw new AppError("You are not permitted", 403);
     }
 
-    // check for existing fine
-    const exisitingFine = await prisma.fine.findFirst({
+    // Find fine
+    const fine = await prisma.fine.findUnique({
       where: {
         id: fineId,
       },
     });
 
-    if (!exisitingFine) {
-      throw new AppError("You have no existinf fine", 404);
+    if (!fine) {
+      throw new AppError("Fine not found", 404);
     }
-    if (exisitingFine.userId !== userId) {
+
+    // Check ownership
+    if (fine.userId !== userId) {
       throw new AppError("You are not permitted to pay this fine", 403);
     }
 
-    // check fine status before payment init
-    if (exisitingFine.status === "PAID") {
+    // Check fine status
+    if (fine.status === "PAID") {
       throw new AppError("This fine has already been paid", 400);
     }
-    if (exisitingFine.status === "WAIVED") {
+
+    if (fine.status === "WAIVED") {
       throw new AppError("This fine has already been waived", 400);
     }
 
-    //   check payment status
-
+    // Check pending payment
     const existingPayment = await prisma.payment.findFirst({
       where: {
         fineId,
@@ -49,23 +51,88 @@ class Payment {
       );
     }
 
-    const payment = await paystackService.initializePayment(
-      user.email,
-      Number(exisitingFine.amount),
-    );
+    // Create payment
+    const payment = await prisma.payment.create({
+      data: {
+        fineId,
+        amount: fine.amount,
+      },
+    });
 
-    const newPayment = await prisma.payment.create({
-        data:{
-            fineId:fineId,
-            amount:exisitingFine.amount,
-            reference:payment.data.reference
-        }
+    try {
+      // Initialize Paystack
+      const paystack = await paystackService.initializePayment(
+        user.email,
+        Number(fine.amount),
+      );
+
+      // Save Paystack reference
+      const updatedPayment = await prisma.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          reference: paystack.data.reference,
+        },
+      });
+
+      return {
+        payment: updatedPayment,
+        paystack: paystack.data,
+      };
+    } catch (error) {
+      // Remove failed payment attempt
+      await prisma.payment.delete({
+        where: {
+          id: payment.id,
+        },
+      });
+
+      throw error;
+    }
+  }
+
+  async verifyPayment(reference: string) {
+    // find payment
+    const payment = await prisma.payment.findUnique({
+      where: {
+        reference,
+      },
+    });
+    if (!payment) {
+      throw new AppError("Payment not found", 404);
+    }
+
+    // verify with paystack
+
+    const paystack = await paystackService.verifyPayment(reference);
+    if (paystack.data.status !== "success") {
+      throw new AppError("Payment was not successful", 400);
+    }
+
+    // update payment status
+
+    const updatedPayment = await prisma.payment.update({
+      where:{
+        id:payment.id
+      },
+      data:{
+        status:"SUCCESS",
+        paidAt:new Date()
+      }
     })
 
-    return{
-        payment:newPayment,
-        paystack:payment.data
-    }
+    // update fine status
+    await prisma.fine.update({
+      where:{
+        id:payment.fineId
+      },
+      data:{
+        status:"PAID"
+      }
+    })
+
+    return updatedPayment;
   }
 }
 

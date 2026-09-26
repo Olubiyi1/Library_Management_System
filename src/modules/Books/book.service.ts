@@ -65,7 +65,7 @@ class BookService {
     if (!author) {
       author = await prisma.author.create({
         data: {
-          name: data.author.name,
+         name:data.author.name
         },
       });
     }

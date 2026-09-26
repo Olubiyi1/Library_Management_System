@@ -45,18 +45,30 @@ class UserService {
   }
 
   async findUserById(id: string): Promise<User | null> {
-    const userId = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id, isActive: true },
     });
 
+    if(!user){
+      UserServiceLogs.warn("User not found")
+      return null
+    }
+
+
     UserServiceLogs.info("User found successfully");
-    return userId;
+    return user;
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { email, isActive: true },
     });
+
+     if(!user){
+      UserServiceLogs.warn("User not found")
+      return null
+    }
+
     UserServiceLogs.info("User found successfully");
     return user;
   }

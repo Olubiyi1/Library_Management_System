@@ -206,7 +206,7 @@ model Payment {
   fineId    String
 
   amount    Decimal
-  reference String @unique
+  reference String? @unique
   status    PaymentStatus @default(PENDING)
 
   paidAt    DateTime?
